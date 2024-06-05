@@ -1,0 +1,45 @@
+plugins {
+    id "java"
+    id "maven-publish"
+}
+
+group "lol.pyr"
+version "1.0.0"
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://repo.papermc.io/repository/maven-public/"
+    }
+}
+
+java {
+    toolchain {
+        languageVersion.set JavaLanguageVersion.of(17)
+    }
+}
+
+dependencies {
+    compileOnly "io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT"
+}
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = "simplergui"
+
+            pom {
+                name.set("simplergui")
+            }
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
+}
