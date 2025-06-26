@@ -84,6 +84,10 @@ public class ItemBuilder {
         return this;
     }
 
+    public ItemBuilder glowing(boolean glowing) {
+        return glowing ? this.glowing() : this;
+    }
+
     public ItemBuilder headSkin(UUID player) {
         if (!(meta instanceof SkullMeta skullMeta)) return this;
         skullMeta.setPlayerProfile(Bukkit.createProfile(player, null));
