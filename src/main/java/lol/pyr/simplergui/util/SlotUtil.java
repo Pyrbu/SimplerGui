@@ -14,4 +14,8 @@ public class SlotUtil {
     public static int getSlot(int row, int col) {
         return ((row - 1) * 9) + (col - 1);
     }
+
+    public static int getNonBorderSlot(int slot) {
+        return slot + 10 + (slot / 7) * 2;
+    }
 }
