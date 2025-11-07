@@ -4,7 +4,7 @@ plugins {
 }
 
 group "lol.pyr"
-version "1.0.3"
+version "1.1.0"
 
 repositories {
     mavenCentral()
@@ -15,7 +15,7 @@ repositories {
 
 java {
     toolchain {
-        languageVersion.set JavaLanguageVersion.of(17)
+        languageVersion.set JavaLanguageVersion.of(21)
     }
 }
 

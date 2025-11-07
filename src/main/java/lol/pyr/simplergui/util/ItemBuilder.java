@@ -5,6 +5,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -12,6 +14,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.profile.PlayerTextures;
 
+import java.net.URI;
 import java.net.URL;
 import java.util.*;
 import java.util.stream.Stream;
@@ -88,6 +91,14 @@ public class ItemBuilder {
         return glowing ? this.glowing() : this;
     }
 
+    private final static UUID attributeUuid = UUID.fromString("9c111e28-453b-48c3-be23-f0ca48f3bb32");
+
+    public ItemBuilder hideAttributes() {
+        meta.addAttributeModifier(Attribute.GENERIC_LUCK, new AttributeModifier(attributeUuid, "dummy", 0, AttributeModifier.Operation.ADD_NUMBER));
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+        return this;
+    }
+
     public ItemBuilder headSkin(UUID player) {
         if (!(meta instanceof SkullMeta skullMeta)) return this;
         skullMeta.setPlayerProfile(Bukkit.createProfile(player, null));
@@ -97,7 +108,7 @@ public class ItemBuilder {
     public ItemBuilder headSkinUrl(String url) {
         if (!(meta instanceof SkullMeta skull)) return this;
         try {
-            URL u = new URL(url);
+            URL u = new URI(url).toURL();
             PlayerProfile profile = Bukkit.createProfile(UUID.randomUUID());
             PlayerTextures textures = profile.getTextures();
             textures.setSkin(u);

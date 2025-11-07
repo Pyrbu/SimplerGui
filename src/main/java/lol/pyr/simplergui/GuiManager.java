@@ -1,6 +1,7 @@
 package lol.pyr.simplergui;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -15,7 +16,7 @@ import java.util.UUID;
 
 public class GuiManager implements Listener {
     private final Plugin plugin;
-    private final Map<UUID, SimpleGui> guiMap = new HashMap<>();
+    private final Map<UUID, Gui> guiMap = new HashMap<>();
 
     public GuiManager(Plugin plugin) {
         this.plugin = plugin;
@@ -23,31 +24,31 @@ public class GuiManager implements Listener {
     }
 
     public void shutdown() {
-        for (SimpleGui gui : guiMap.values()) gui.getPlayer().closeInventory();
+        for (Gui gui : guiMap.values()) for (Player player : gui.getViewers()) player.closeInventory();
         guiMap.clear();
         HandlerList.unregisterAll(this);
     }
 
-    public void openGui(SimpleGui gui) {
+    public void openGui(Player player, Gui gui) {
         if (!Bukkit.isPrimaryThread()) {
-            Bukkit.getScheduler().runTask(plugin, () -> openGui(gui));
+            Bukkit.getScheduler().runTask(plugin, () -> openGui(player, gui));
             return;
         }
-        gui.getPlayer().closeInventory();
-        guiMap.put(gui.getPlayer().getUniqueId(), gui);
-        gui.open();
+        player.closeInventory();
+        guiMap.put(player.getUniqueId(), gui);
+        gui.open(player);
     }
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        SimpleGui gui = guiMap.get(event.getWhoClicked().getUniqueId());
+        Gui gui = guiMap.get(event.getWhoClicked().getUniqueId());
         if (gui == null) return;
         gui.handleClick(event);
     }
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
-        SimpleGui gui = guiMap.get(event.getPlayer().getUniqueId());
+        Gui gui = guiMap.get(event.getPlayer().getUniqueId());
         if (gui == null) return;
         gui.handleClose(event);
         guiMap.remove(event.getPlayer().getUniqueId());
@@ -55,7 +56,7 @@ public class GuiManager implements Listener {
 
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
-        SimpleGui gui = guiMap.get(event.getWhoClicked().getUniqueId());
+        Gui gui = guiMap.get(event.getWhoClicked().getUniqueId());
         if (gui == null) return;
         gui.handleDrag(event);
     }
