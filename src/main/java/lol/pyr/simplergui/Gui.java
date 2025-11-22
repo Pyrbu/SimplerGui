@@ -8,10 +8,9 @@ import org.bukkit.event.inventory.InventoryDragEvent;
 import java.util.Collection;
 
 public interface Gui {
-    void open(Player player);
     Collection<Player> getViewers();
-
+    void open(Player player);
     void handleClick(InventoryClickEvent event);
-    void handleDrag(InventoryDragEvent event);
     void handleClose(InventoryCloseEvent event);
+    void handleDrag(InventoryDragEvent event);
 }

@@ -4,9 +4,10 @@ plugins {
 }
 
 group "lol.pyr"
-version "1.1.0"
+version "2.0.0"
 
 repositories {
+    mavenLocal()
     mavenCentral()
     maven {
         url "https://repo.papermc.io/repository/maven-public/"
@@ -21,6 +22,7 @@ java {
 
 dependencies {
     compileOnly "io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT"
+    compileOnly "space.arim.dazzleconf:dazzleconf-yaml:2.0.0-M1-PYRBU"
 }
 
 java {
