@@ -2,6 +2,7 @@ package lol.pyr.simplergui.components.iteminput;
 
 import lol.pyr.simplergui.GuiComponent;
 import lol.pyr.simplergui.GuiInstance;
+import net.kyori.adventure.sound.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -13,9 +14,13 @@ import java.util.List;
 
 public class GuiItemInputComponent<GuiData> implements GuiComponent<GuiData, List<ItemStack>> {
     private final List<Integer> slots = new ArrayList<>();
+    private final Sound addSound;
+    private final Sound removeSound;
 
     public GuiItemInputComponent(GuiItemInputConfig config) {
         this.slots.addAll(config.slots());
+        this.addSound = config.buildAddSound();
+        this.removeSound = config.buildRemoveSound();
     }
 
     public List<ItemStack> getItems(GuiInstance<GuiData> instance) {
@@ -41,6 +46,7 @@ public class GuiItemInputComponent<GuiData> implements GuiComponent<GuiData, Lis
             instance.getInventory().setItem(slot, items.get(i));
             instance.setClickHandler(slot, (ins, event) -> {
                 if (!(event.getWhoClicked() instanceof Player player)) return;
+                if (removeSound != null) ins.playSound(removeSound);
                 ItemStack item = items.remove(index);
                 if (player.getInventory().firstEmpty() == -1) player.getWorld().dropItem(player.getLocation(), item);
                 else player.getInventory().addItem(item);
@@ -73,6 +79,7 @@ public class GuiItemInputComponent<GuiData> implements GuiComponent<GuiData, Lis
 
         ItemStack item = event.getCurrentItem();
         if (item == null) return;
+        if (addSound != null) instance.playSound(addSound);
         items.add(item.clone());
         item.setAmount(0);
         render(instance);

@@ -3,6 +3,7 @@ package lol.pyr.simplergui.components.cycler;
 import lol.pyr.simplergui.GuiComponent;
 import lol.pyr.simplergui.GuiInstance;
 import lol.pyr.simplergui.util.ItemBuilder;
+import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.inventory.ItemStack;
@@ -21,6 +22,7 @@ public class GuiCyclerComponent<GuiData, T> implements GuiComponent<GuiData, Int
     private final String modeFormat;
     private final String modeSelectedFormat;
     private final List<Component> extraLore;
+    private final Sound sound;
 
     public GuiCyclerComponent(Map<String, ItemStack> items, GuiCyclerConfig config, List<T> modes, Function<T, String> modeNameFunc, BiConsumer<GuiInstance<GuiData>, T> switchCallback) {
         this.switchCallback = switchCallback;
@@ -33,6 +35,7 @@ public class GuiCyclerComponent<GuiData, T> implements GuiComponent<GuiData, Int
         this.extraLore = config.extraLore().stream()
                 .map(str -> MiniMessage.miniMessage().deserialize(str))
                 .toList();
+        this.sound = config.buildSound();
     }
 
     public T getCurrentMode(GuiInstance<GuiData> instance) {
@@ -61,6 +64,7 @@ public class GuiCyclerComponent<GuiData, T> implements GuiComponent<GuiData, Int
             if (mode < 0) mode = modes.size() - 1;
             if (mode >= modes.size()) mode = 0;
             i.setData(this, mode);
+            if (sound != null) instance.playSound(sound);
             update(instance, mode);
             switchCallback.accept(i, modes.get(mode));
         });

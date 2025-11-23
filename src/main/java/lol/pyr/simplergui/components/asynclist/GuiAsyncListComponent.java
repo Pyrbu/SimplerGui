@@ -3,6 +3,7 @@ package lol.pyr.simplergui.components.asynclist;
 import lol.pyr.simplergui.GuiComponent;
 import lol.pyr.simplergui.GuiInstance;
 import lol.pyr.simplergui.components.list.GuiListComponent;
+import net.kyori.adventure.sound.Sound;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -29,6 +30,10 @@ public class GuiAsyncListComponent<GuiData, T> implements GuiComponent<GuiData, 
     private final int loadingSlot;
     private final ItemStack loadingItem;
 
+    private final Sound nextPageSound;
+    private final Sound previousPageSound;
+    private final Sound selectSound;
+
     public GuiAsyncListComponent(Plugin plugin, Map<String, ItemStack> items, GuiAsyncListConfig config, boolean renderOnOpen, Function<GuiInstance<GuiData>, CompletableFuture<Collection<T>>> objectsSupplier, GuiListComponent.SelectHandler<GuiData, T> selectHandler, Function<T, CompletableFuture<ItemStack>> itemRenderer) {
         this.plugin = plugin;
         this.objectsSupplier = objectsSupplier;
@@ -42,6 +47,9 @@ public class GuiAsyncListComponent<GuiData, T> implements GuiComponent<GuiData, 
         this.previousPageItem = items.get(config.previousPageItem());
         this.loadingSlot = config.loadingIconSlot();
         this.loadingItem = items.get(config.loadingIconItem());
+        this.nextPageSound = config.buildNextPageSound();
+        this.previousPageSound = config.buildPreviousPageSound();
+        this.selectSound = config.buildSelectSound();
     }
 
     public void render(GuiInstance<GuiData> instance) {
@@ -78,6 +86,7 @@ public class GuiAsyncListComponent<GuiData, T> implements GuiComponent<GuiData, 
                     if (page > 0) {
                         instance.getInventory().setItem(previousPageSlot, previousPageItem);
                         instance.setClickHandler(previousPageSlot, (ins, event) -> {
+                            if (previousPageSound != null) ins.playSound(previousPageSound);
                             GuiAsyncListState s = ins.getDataOrCompute(this, GuiAsyncListState::new);
                             s.setPage(s.getPage() - 1);
                             render(ins);
@@ -91,6 +100,7 @@ public class GuiAsyncListComponent<GuiData, T> implements GuiComponent<GuiData, 
                     if (page < maxPage) {
                         instance.getInventory().setItem(nextPageSlot, nextPageItem);
                         instance.setClickHandler(nextPageSlot, (ins, event) -> {
+                            if (nextPageSound != null) ins.playSound(nextPageSound);
                             GuiAsyncListState s = ins.getDataOrCompute(this, GuiAsyncListState::new);
                             s.setPage(s.getPage() + 1);
                             render(ins);
@@ -100,7 +110,10 @@ public class GuiAsyncListComponent<GuiData, T> implements GuiComponent<GuiData, 
 
                 for (Map.Entry<Integer, Map.Entry<T, CompletableFuture<ItemStack>>> entry : stateMap.entrySet()) {
                     instance.getInventory().setItem(entry.getKey(), entry.getValue().getValue().join());
-                    instance.setClickHandler(entry.getKey(), (ins, event) -> selectHandler.handle(event, instance, entry.getValue().getKey()));
+                    instance.setClickHandler(entry.getKey(), (ins, event) -> {
+                        if (selectSound != null) ins.playSound(selectSound);
+                        selectHandler.handle(event, instance, entry.getValue().getKey());
+                    });
                 }
             };
 
