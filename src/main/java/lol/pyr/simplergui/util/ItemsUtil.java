@@ -7,6 +7,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.Base64;
 import java.util.List;
 
 public class ItemsUtil {
@@ -39,4 +40,8 @@ public class ItemsUtil {
         item.setItemMeta(meta);
         return item;
     });
+
+    public static String encodeItem(ItemStack item) {
+        return Base64.getEncoder().encodeToString(item.serializeAsBytes());
+    }
 }
