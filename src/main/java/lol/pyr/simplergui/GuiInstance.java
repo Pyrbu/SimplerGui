@@ -44,6 +44,15 @@ public class GuiInstance<GuiData> implements Gui {
         return guiData;
     }
 
+    public GuiData getDataOrDefault(GuiData data) {
+        return guiData == null ? data : guiData;
+    }
+
+    public GuiData getDataOrCompute(Supplier<GuiData> supplier) {
+        if (guiData == null) guiData = supplier.get();
+        return guiData;
+    }
+
     public void setData(GuiData data) {
         guiData = data;
     }
