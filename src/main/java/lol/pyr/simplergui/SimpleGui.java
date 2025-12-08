@@ -39,6 +39,7 @@ public abstract class SimpleGui implements Gui {
 
     @Override
     public void handleClose(InventoryCloseEvent event) {
+        if (event.getPlayer() instanceof Player player) viewers.remove(player);
     }
 
     @Override
