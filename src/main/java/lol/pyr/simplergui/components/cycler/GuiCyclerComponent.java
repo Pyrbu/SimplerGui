@@ -1,5 +1,6 @@
 package lol.pyr.simplergui.components.cycler;
 
+import lol.pyr.simplergui.GuiBlueprint;
 import lol.pyr.simplergui.GuiComponent;
 import lol.pyr.simplergui.GuiInstance;
 import lol.pyr.simplergui.util.ItemBuilder;
@@ -24,12 +25,12 @@ public class GuiCyclerComponent<GuiData, T> implements GuiComponent<GuiData, Int
     private final List<Component> extraLore;
     private final Sound sound;
 
-    public GuiCyclerComponent(Map<String, ItemStack> items, GuiCyclerConfig config, List<T> modes, Function<T, String> modeNameFunc, BiConsumer<GuiInstance<GuiData>, T> switchCallback) {
+    public GuiCyclerComponent(GuiBlueprint<GuiData> blueprint, GuiCyclerConfig config, List<T> modes, Function<T, String> modeNameFunc, BiConsumer<GuiInstance<GuiData>, T> switchCallback) {
         this.switchCallback = switchCallback;
         this.modes.addAll(modes);
         this.modeNameFunc = modeNameFunc;
         this.slot = config.slot();
-        this.baseItem = items.get(config.baseItem());
+        this.baseItem = blueprint.getItem(config.baseItem());
         this.modeFormat = config.modeFormat();
         this.modeSelectedFormat = config.modeSelectedFormat();
         this.extraLore = config.extraLore().stream()

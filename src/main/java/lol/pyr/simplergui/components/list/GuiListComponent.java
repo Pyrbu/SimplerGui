@@ -1,5 +1,6 @@
 package lol.pyr.simplergui.components.list;
 
+import lol.pyr.simplergui.GuiBlueprint;
 import lol.pyr.simplergui.GuiComponent;
 import lol.pyr.simplergui.GuiInstance;
 import net.kyori.adventure.sound.Sound;
@@ -25,16 +26,16 @@ public class GuiListComponent<GuiData, T> implements GuiComponent<GuiData, Long>
     private final Sound previousPageSound;
     private final Sound selectSound;
 
-    public GuiListComponent(Map<String, ItemStack> items, GuiListConfig config, boolean renderOnOpen, Function<GuiInstance<GuiData>, Collection<T>> objectsSupplier, SelectHandler<GuiData, T> selectHandler, Function<T, ItemStack> itemRenderer) {
+    public GuiListComponent(GuiBlueprint<GuiData> blueprint, GuiListConfig config, boolean renderOnOpen, Function<GuiInstance<GuiData>, Collection<T>> objectsSupplier, SelectHandler<GuiData, T> selectHandler, Function<T, ItemStack> itemRenderer) {
         this.renderOnOpen = renderOnOpen;
         this.objectsSupplier = objectsSupplier;
         this.selectHandler = selectHandler;
         this.itemRenderer = itemRenderer;
         this.displaySlots.addAll(config.displaySlots());
         this.nextPageSlot = config.nextPageSlot();
-        this.nextPageItem = items.get(config.nextPageItem());
+        this.nextPageItem = blueprint.getItem(config.nextPageItem());
         this.previousPageSlot = config.previousPageSlot();
-        this.previousPageItem = items.get(config.previousPageItem());
+        this.previousPageItem = blueprint.getItem(config.previousPageItem());
         this.nextPageSound = config.buildNextPageSound();
         this.previousPageSound = config.buildPreviousPageSound();
         this.selectSound = config.buildSelectSound();

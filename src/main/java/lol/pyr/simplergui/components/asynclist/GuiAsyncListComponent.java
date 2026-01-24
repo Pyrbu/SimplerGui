@@ -1,5 +1,6 @@
 package lol.pyr.simplergui.components.asynclist;
 
+import lol.pyr.simplergui.GuiBlueprint;
 import lol.pyr.simplergui.GuiComponent;
 import lol.pyr.simplergui.GuiInstance;
 import lol.pyr.simplergui.components.list.GuiListComponent;
@@ -34,7 +35,7 @@ public class GuiAsyncListComponent<GuiData, T> implements GuiComponent<GuiData, 
     private final Sound previousPageSound;
     private final Sound selectSound;
 
-    public GuiAsyncListComponent(Plugin plugin, Map<String, ItemStack> items, GuiAsyncListConfig config, boolean renderOnOpen, Function<GuiInstance<GuiData>, CompletableFuture<Collection<T>>> objectsSupplier, GuiListComponent.SelectHandler<GuiData, T> selectHandler, Function<T, CompletableFuture<ItemStack>> itemRenderer) {
+    public GuiAsyncListComponent(GuiBlueprint<GuiData> blueprint, Plugin plugin, GuiAsyncListConfig config, boolean renderOnOpen, Function<GuiInstance<GuiData>, CompletableFuture<Collection<T>>> objectsSupplier, GuiListComponent.SelectHandler<GuiData, T> selectHandler, Function<T, CompletableFuture<ItemStack>> itemRenderer) {
         this.plugin = plugin;
         this.objectsSupplier = objectsSupplier;
         this.selectHandler = selectHandler;
@@ -42,11 +43,11 @@ public class GuiAsyncListComponent<GuiData, T> implements GuiComponent<GuiData, 
         this.renderOnOpen = renderOnOpen;
         this.displaySlots.addAll(config.displaySlots());
         this.nextPageSlot = config.nextPageSlot();
-        this.nextPageItem = items.get(config.nextPageItem());
+        this.nextPageItem = blueprint.getItem(config.nextPageItem());
         this.previousPageSlot = config.previousPageSlot();
-        this.previousPageItem = items.get(config.previousPageItem());
+        this.previousPageItem = blueprint.getItem(config.previousPageItem());
         this.loadingSlot = config.loadingIconSlot();
-        this.loadingItem = items.get(config.loadingIconItem());
+        this.loadingItem = blueprint.getItem(config.loadingIconItem());
         this.nextPageSound = config.buildNextPageSound();
         this.previousPageSound = config.buildPreviousPageSound();
         this.selectSound = config.buildSelectSound();

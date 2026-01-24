@@ -11,15 +11,14 @@ import java.util.*;
 public class GuiBlueprint<GuiData> {
     private final int inventorySize;
     private final Component name;
+    private final Map<String, ItemStack> items = new HashMap<>();
     private final Map<Integer, ItemStack> defaultLayout = new HashMap<>();
     protected final List<GuiComponent<GuiData, ?>> components = new ArrayList<>();
 
     protected GuiBlueprint(GuiBlueprintConfig config) {
         this.inventorySize = config.guiSize();
         this.name = MiniMessage.miniMessage().deserialize(config.guiName());
-    }
-
-    protected void setupDefaultItems(GuiBlueprintConfig config, Map<String, ItemStack> items) {
+        for (Map.Entry<String, String> entry : config.items().entrySet()) items.put(entry.getKey(), ItemStack.deserializeBytes(Base64.getDecoder().decode(entry.getValue())));
         for (Map.Entry<Integer, String> entry : config.defaultLayout().entrySet()) defaultLayout.put(entry.getKey(), items.get(entry.getValue()));
     }
 
@@ -31,6 +30,10 @@ public class GuiBlueprint<GuiData> {
 
     public ItemStack getDefaultItem(int slot) {
         return defaultLayout.get(slot);
+    }
+
+    public ItemStack getItem(String id) {
+        return items.get(id);
     }
 
     protected <T extends GuiComponent<GuiData, ?>> T registerComponent(T component) {

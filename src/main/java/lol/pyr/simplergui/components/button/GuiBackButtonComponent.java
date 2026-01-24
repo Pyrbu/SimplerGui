@@ -1,5 +1,6 @@
 package lol.pyr.simplergui.components.button;
 
+import lol.pyr.simplergui.GuiBlueprint;
 import lol.pyr.simplergui.GuiComponent;
 import lol.pyr.simplergui.GuiInstance;
 import lol.pyr.simplergui.GuiManager;
@@ -7,18 +8,16 @@ import net.kyori.adventure.sound.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Map;
-
 public class GuiBackButtonComponent<GuiData> implements GuiComponent<GuiData, GuiInstance<?>> {
     private final GuiManager guiManager;
     private final int slot;
     private final ItemStack item;
     private final Sound sound;
 
-    public GuiBackButtonComponent(GuiManager guiManager, Map<String, ItemStack> items, GuiButtonConfig config) {
+    public GuiBackButtonComponent(GuiBlueprint<GuiData> blueprint, GuiManager guiManager, GuiButtonConfig config) {
         this.guiManager = guiManager;
         this.slot = config.slot();
-        this.item = items.get(config.item());
+        this.item = blueprint.getItem(config.item());
         this.sound = config.buildSound();
     }
 
