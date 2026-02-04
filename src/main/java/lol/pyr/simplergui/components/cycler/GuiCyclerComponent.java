@@ -10,13 +10,10 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
-public class GuiCyclerComponent<GuiData, T> implements GuiComponent<GuiData, Integer> {
+@SuppressWarnings("unused")
+public abstract class GuiCyclerComponent<GuiData, T> implements GuiComponent<GuiData, Integer> {
     private final List<T> modes = new ArrayList<>();
-    private final Function<T, String> modeNameFunc;
-    private final BiConsumer<GuiInstance<GuiData>, T> switchCallback;
 
     private final int slot;
     private final ItemStack baseItem;
@@ -25,10 +22,8 @@ public class GuiCyclerComponent<GuiData, T> implements GuiComponent<GuiData, Int
     private final List<Component> extraLore;
     private final Sound sound;
 
-    public GuiCyclerComponent(GuiBlueprint<GuiData> blueprint, GuiCyclerConfig config, List<T> modes, Function<T, String> modeNameFunc, BiConsumer<GuiInstance<GuiData>, T> switchCallback) {
-        this.switchCallback = switchCallback;
+    public GuiCyclerComponent(GuiBlueprint<GuiData> blueprint, GuiCyclerConfig config, List<T> modes) {
         this.modes.addAll(modes);
-        this.modeNameFunc = modeNameFunc;
         this.slot = config.slot();
         this.baseItem = blueprint.getItem(config.baseItem());
         this.modeFormat = config.modeFormat();
@@ -51,12 +46,12 @@ public class GuiCyclerComponent<GuiData, T> implements GuiComponent<GuiData, Int
     }
 
     public void update(GuiInstance<GuiData> instance, int mode) {
-        instance.getInventory().setItem(slot, generateItem(mode));
+        instance.getInventory().setItem(slot, generateItem(instance, mode));
     }
 
     @Override
     public void setup(GuiInstance<GuiData> instance) {
-        instance.getInventory().setItem(slot, generateItem(0));
+        instance.getInventory().setItem(slot, generateItem(instance, 0));
         instance.setClickHandler(slot, (i, event) -> {
             int modifier = 0;
             if (event.isLeftClick()) modifier++;
@@ -67,16 +62,19 @@ public class GuiCyclerComponent<GuiData, T> implements GuiComponent<GuiData, Int
             i.setData(this, mode);
             if (sound != null) instance.playSound(sound);
             update(instance, mode);
-            switchCallback.accept(i, modes.get(mode));
+            handleSwitch(i, modes.get(mode));
         });
     }
 
-    private ItemStack generateItem(int currentMode) {
+    private ItemStack generateItem(GuiInstance<GuiData> instance, int currentMode) {
         T mode = currentMode < 0 || currentMode >= modes.size() ? null : modes.get(currentMode);
         ItemBuilder builder = new ItemBuilder(baseItem);
         for (T m : modes) builder.addLore(MiniMessage.miniMessage().deserialize(
-                (Objects.equals(m, mode) ? modeSelectedFormat : modeFormat).replace("%mode%", modeNameFunc.apply(m))));
+                (Objects.equals(m, mode) ? modeSelectedFormat : modeFormat).replace("%mode%", computeModeName(instance, m))));
         if (extraLore != null) builder.addLore(extraLore);
         return builder.build();
     }
+
+    public abstract void handleSwitch(GuiInstance<GuiData> instance, T mode);
+    public abstract String computeModeName(GuiInstance<GuiData> instance, T mode);
 }

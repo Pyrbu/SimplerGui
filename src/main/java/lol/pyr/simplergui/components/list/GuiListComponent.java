@@ -9,14 +9,10 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
-import java.util.function.Function;
 
-public class GuiListComponent<GuiData, T> implements GuiComponent<GuiData, Long> {
+@SuppressWarnings("unused")
+public abstract class GuiListComponent<GuiData, T> implements GuiComponent<GuiData, Long> {
     private final boolean renderOnOpen;
-    private final Function<GuiInstance<GuiData>, Collection<T>> objectsSupplier;
-    private final SelectHandler<GuiData, T> selectHandler;
-    private final Function<T, ItemStack> itemRenderer;
-
     private final List<Integer> displaySlots = new ArrayList<>();
     private final int nextPageSlot;
     private final ItemStack nextPageItem;
@@ -26,11 +22,8 @@ public class GuiListComponent<GuiData, T> implements GuiComponent<GuiData, Long>
     private final Sound previousPageSound;
     private final Sound selectSound;
 
-    public GuiListComponent(GuiBlueprint<GuiData> blueprint, GuiListConfig config, boolean renderOnOpen, Function<GuiInstance<GuiData>, Collection<T>> objectsSupplier, SelectHandler<GuiData, T> selectHandler, Function<T, ItemStack> itemRenderer) {
+    public GuiListComponent(GuiBlueprint<GuiData> blueprint, GuiListConfig config, boolean renderOnOpen) {
         this.renderOnOpen = renderOnOpen;
-        this.objectsSupplier = objectsSupplier;
-        this.selectHandler = selectHandler;
-        this.itemRenderer = itemRenderer;
         this.displaySlots.addAll(config.displaySlots());
         this.nextPageSlot = config.nextPageSlot();
         this.nextPageItem = blueprint.getItem(config.nextPageItem());
@@ -44,7 +37,7 @@ public class GuiListComponent<GuiData, T> implements GuiComponent<GuiData, Long>
     public void render(GuiInstance<GuiData> instance) {
         long page = instance.getDataOrDefault(this, 0L);
         long objectsPerPage = displaySlots.size();
-        Collection<T> list = objectsSupplier.apply(instance);
+        Collection<T> list = collectObjects(instance);
         long maxPage = list.size() / objectsPerPage;
 
         if (previousPageSlot != -1) {
@@ -81,10 +74,10 @@ public class GuiListComponent<GuiData, T> implements GuiComponent<GuiData, Long>
                 .limit(objectsPerPage)
                 .toList()) {
             int slot = displaySlots.get(i++);
-            instance.getInventory().setItem(slot, itemRenderer.apply(obj));
+            instance.getInventory().setItem(slot, renderToItem(instance, obj));
             instance.setClickHandler(slot, (ins, event) -> {
                 if (selectSound != null) ins.playSound(selectSound);
-                selectHandler.handle(event, ins, obj);
+                handleSelect(ins, obj, event);
             });
         }
     }
@@ -99,8 +92,7 @@ public class GuiListComponent<GuiData, T> implements GuiComponent<GuiData, Long>
         render(instance);
     }
 
-    @FunctionalInterface
-    public interface SelectHandler<GuiData, T> {
-        void handle(InventoryClickEvent event, GuiInstance<GuiData> instance, T obj);
-    }
+    public abstract Collection<T> collectObjects(GuiInstance<GuiData> instance);
+    public abstract ItemStack renderToItem(GuiInstance<GuiData> instance, T obj);
+    public abstract void handleSelect(GuiInstance<GuiData> instance, T obj, InventoryClickEvent event);
 }

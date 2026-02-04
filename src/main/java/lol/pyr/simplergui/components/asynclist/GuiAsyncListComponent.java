@@ -3,23 +3,20 @@ package lol.pyr.simplergui.components.asynclist;
 import lol.pyr.simplergui.GuiBlueprint;
 import lol.pyr.simplergui.GuiComponent;
 import lol.pyr.simplergui.GuiInstance;
-import lol.pyr.simplergui.components.list.GuiListComponent;
 import net.kyori.adventure.sound.Sound;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 
-public class GuiAsyncListComponent<GuiData, T> implements GuiComponent<GuiData, GuiAsyncListState> {
+@SuppressWarnings("unused")
+public abstract class GuiAsyncListComponent<GuiData, T> implements GuiComponent<GuiData, GuiAsyncListState> {
     private final Plugin plugin;
 
-    private final Function<GuiInstance<GuiData>, CompletableFuture<Collection<T>>> objectsSupplier;
-    private final GuiListComponent.SelectHandler<GuiData, T> selectHandler;
-    private final Function<T, CompletableFuture<ItemStack>> itemRenderer;
     private final boolean renderOnOpen;
 
     private final List<Integer> displaySlots = new ArrayList<>();
@@ -35,11 +32,8 @@ public class GuiAsyncListComponent<GuiData, T> implements GuiComponent<GuiData, 
     private final Sound previousPageSound;
     private final Sound selectSound;
 
-    public GuiAsyncListComponent(GuiBlueprint<GuiData> blueprint, Plugin plugin, GuiAsyncListConfig config, boolean renderOnOpen, Function<GuiInstance<GuiData>, CompletableFuture<Collection<T>>> objectsSupplier, GuiListComponent.SelectHandler<GuiData, T> selectHandler, Function<T, CompletableFuture<ItemStack>> itemRenderer) {
+    public GuiAsyncListComponent(GuiBlueprint<GuiData> blueprint, Plugin plugin, GuiAsyncListConfig config, boolean renderOnOpen) {
         this.plugin = plugin;
-        this.objectsSupplier = objectsSupplier;
-        this.selectHandler = selectHandler;
-        this.itemRenderer = itemRenderer;
         this.renderOnOpen = renderOnOpen;
         this.displaySlots.addAll(config.displaySlots());
         this.nextPageSlot = config.nextPageSlot();
@@ -64,7 +58,7 @@ public class GuiAsyncListComponent<GuiData, T> implements GuiComponent<GuiData, 
         long page = state.getPage();
         long objectsPerPage = displaySlots.size();
 
-        objectsSupplier.apply(instance).thenAccept(list -> {
+        collectObjects(instance).thenAccept(list -> {
             long maxPage = list.size() / objectsPerPage;
 
             Map<Integer, Map.Entry<T, CompletableFuture<ItemStack>>> stateMap = new HashMap<>();
@@ -74,7 +68,7 @@ public class GuiAsyncListComponent<GuiData, T> implements GuiComponent<GuiData, 
                     .limit(objectsPerPage)
                     .toList()) {
                 int slot = displaySlots.get(i++);
-                stateMap.put(slot, Map.entry(obj, itemRenderer.apply(obj)));
+                stateMap.put(slot, Map.entry(obj, renderToItem(instance, obj)));
             }
 
             Runnable whenDone = () -> {
@@ -113,7 +107,7 @@ public class GuiAsyncListComponent<GuiData, T> implements GuiComponent<GuiData, 
                     instance.getInventory().setItem(entry.getKey(), entry.getValue().getValue().join());
                     instance.setClickHandler(entry.getKey(), (ins, event) -> {
                         if (selectSound != null) ins.playSound(selectSound);
-                        selectHandler.handle(event, instance, entry.getValue().getKey());
+                        handleSelect(ins, entry.getValue().getKey(), event);
                     });
                 }
             };
@@ -140,4 +134,8 @@ public class GuiAsyncListComponent<GuiData, T> implements GuiComponent<GuiData, 
     public void setup(GuiInstance<GuiData> instance) {
         render(instance);
     }
+
+    public abstract CompletableFuture<Collection<T>> collectObjects(GuiInstance<GuiData> instance);
+    public abstract CompletableFuture<ItemStack> renderToItem(GuiInstance<GuiData> instance, T obj);
+    public abstract void handleSelect(GuiInstance<GuiData> instance, T obj, InventoryClickEvent event);
 }

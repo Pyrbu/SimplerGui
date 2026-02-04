@@ -8,33 +8,30 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.function.BiConsumer;
-import java.util.function.BiPredicate;
-
-public class GuiConditionalButtonComponent<GuiData> implements GuiComponent<GuiData, Void> {
+@SuppressWarnings("unused")
+public abstract class GuiConditionalButtonComponent<GuiData> implements GuiComponent<GuiData, Void> {
     private final int slot;
     private final ItemStack item;
-    private final BiConsumer<InventoryClickEvent, GuiInstance<GuiData>> handler;
-    private final BiPredicate<GuiInstance<GuiData>, Player> shouldRender;
     private final Sound sound;
 
-    public GuiConditionalButtonComponent(GuiBlueprint<GuiData> blueprint, GuiButtonConfig config, BiPredicate<GuiInstance<GuiData>, Player> shouldRender, BiConsumer<InventoryClickEvent, GuiInstance<GuiData>> handler) {
+    public GuiConditionalButtonComponent(GuiBlueprint<GuiData> blueprint, GuiButtonConfig config) {
         this.slot = config.slot();
         this.item = blueprint.getItem(config.item());
-        this.shouldRender = shouldRender;
-        this.handler = handler;
         this.sound = config.buildSound();
     }
 
     @Override
     public void handleOpen(GuiInstance<GuiData> instance, Player player) {
         if (slot == -1) return;
-        if (shouldRender.test(instance, player)) {
+        if (shouldRender(instance, player)) {
             instance.getInventory().setItem(slot, item);
             instance.setClickHandler(slot, (i, event) -> {
                 if (sound != null) i.playSound(sound);
-                handler.accept(event, instance);
+                handleClick(instance, event);
             });
         }
     }
+
+    public abstract void handleClick(GuiInstance<GuiData> instance, InventoryClickEvent event);
+    public abstract boolean shouldRender(GuiInstance<GuiData> instance, Player player);
 }
